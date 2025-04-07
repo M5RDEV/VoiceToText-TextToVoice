@@ -594,676 +594,262 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-    // تبديل بين علامات التبويب
-    const tabs = document.querySelectorAll('.tab');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
+            // تبديل بين علامات التبويب
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
             
-            // إزالة الفئة النشطة من جميع علامات التبويب والمحتويات
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+                    
+                    // إزالة الفئة النشطة من جميع علامات التبويب والمحتويات
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // إضافة الفئة النشطة إلى علامة التبويب المحددة ومحتواها
+                    tab.classList.add('active');
+                    document.getElementById(target).classList.add('active');
+                });
+            });
             
-            // إضافة الفئة النشطة إلى علامة التبويب المحددة ومحتواها
-            tab.classList.add('active');
-            document.getElementById(target).classList.add('active');
-        });
-    });
-    
-    // =========== التعرف على الكلام (الصوت إلى نص) ===========
-    
-    // التحقق من دعم المتصفح للتعرف على الكلام
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition;
-    
-    if (!SpeechRecognition) {
-        document.getElementById('stt-browser-support').style.display = 'block';
-        document.getElementById('record-button').style.display = 'none';
-    } else {
-        recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        
-        const recordButton = document.getElementById('record-button');
-        const recordingStatus = document.getElementById('recording-status');
-        const transcriptionResult = document.getElementById('transcription-result');
-        const speechLanguage = document.getElementById('speech-language');
-        
-        let isRecording = false;
-        let finalTranscription = ''; // متغير للاحتفاظ بالنص النهائي الكامل
-        
-        // تحديث لغة التعرف عند تغييرها
-        speechLanguage.addEventListener('change', () => {
-            recognition.lang = speechLanguage.value;
-        });
-        
-        // زر التسجيل
-        recordButton.addEventListener('click', () => {
-            if (!isRecording) {
-                // بدء التسجيل
-                startRecording();
+            // =========== التعرف على الكلام (الصوت إلى نص) ===========
+            
+            // التحقق من دعم المتصفح للتعرف على الكلام
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let recognition;
+            
+            if (!SpeechRecognition) {
+                document.getElementById('stt-browser-support').style.display = 'block';
+                document.getElementById('record-button').style.display = 'none';
             } else {
-                // إيقاف التسجيل
-                stopRecording();
-            }
-        });
-        
-        function startRecording() {
-            try {
-                recognition.lang = speechLanguage.value;
-                recognition.start();
-                isRecording = true;
-                recordButton.classList.add('recording');
-                recordingStatus.textContent = 'جاري التسجيل...';
-            } catch (err) {
-                console.error('خطأ في بدء التسجيل:', err);
-                recordingStatus.textContent = 'حدث خطأ في بدء التسجيل';
-                setTimeout(() => {
-                    recordingStatus.textContent = '';
-                }, 3000);
-            }
-        }
-        
-        function stopRecording() {
-            try {
-                recognition.stop();
-                isRecording = false;
-                recordButton.classList.remove('recording');
-                recordingStatus.textContent = 'تم إيقاف التسجيل';
-                setTimeout(() => {
-                    recordingStatus.textContent = '';
-                }, 3000);
-            } catch (err) {
-                console.error('خطأ في إيقاف التسجيل:', err);
-            }
-        }
-        
-        // معالجة نتائج التعرف على الكلام - حل مشكلة التكرار
-        recognition.onresult = (event) => {
-            let interimTranscript = '';
-            let currentFinalTranscript = '';
-            
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                const transcript = event.results[i][0].transcript;
-                if (event.results[i].isFinal) {
-                    currentFinalTranscript += transcript + ' ';
-                } else {
-                    interimTranscript += transcript;
-                }
-            }
-            
-            // إضافة النص النهائي الجديد فقط إلى النص النهائي الكامل
-            if (currentFinalTranscript) {
-                finalTranscription += currentFinalTranscript;
-                // تحديث منطقة النص بالنص النهائي الكامل
-                transcriptionResult.value = finalTranscription;
-            }
-            
-            // عرض النص المؤقت بشكل منفصل (بدون تكرار)
-            if (interimTranscript) {
-                transcriptionResult.value = finalTranscription + ' ' + interimTranscript;
-            }
-        };
-        
-        recognition.onend = () => {
-            // إذا كان لا يزال في وضع التسجيل، إعادة تشغيل التعرف
-            if (isRecording) {
-                recognition.start();
-            }
-        };
-        
-        recognition.onerror = (event) => {
-            console.error('خطأ في التعرف على الكلام:', event.error);
-            recordingStatus.textContent = 'حدث خطأ: ' + event.error;
-            isRecording = false;
-            recordButton.classList.remove('recording');
-            
-            setTimeout(() => {
-                recordingStatus.textContent = '';
-            }, 3000);
-        };
-        
-        // زر النسخ
-        document.getElementById('copy-text-btn').addEventListener('click', () => {
-            const textToCopy = transcriptionResult.value;
-            if (textToCopy.trim() === '') {
-                recordingStatus.textContent = 'لا يوجد نص للنسخ';
-                setTimeout(() => {
-                    recordingStatus.textContent = '';
-                }, 3000);
-                return;
-            }
-            
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                recordingStatus.textContent = 'تم نسخ النص بنجاح!';
-                setTimeout(() => {
-                    recordingStatus.textContent = '';
-                }, 3000);
-            }).catch(err => {
-                console.error('خطأ في نسخ النص:', err);
-                recordingStatus.textContent = 'حدث خطأ أثناء نسخ النص';
-                setTimeout(() => {
-                    recordingStatus.textContent = '';
-                }, 3000);
-            });
-        });
-        
-        // زر التنزيل
-        document.getElementById('download-text-btn').addEventListener('click', () => {
-            const text = transcriptionResult.value;
-            if (text.trim() === '') {
-                recordingStatus.textContent = 'لا يوجد نص للتنزيل';
-                setTimeout(() => {
-                    recordingStatus.textContent = '';
-                }, 3000);
-                return;
-            }
-            
-            const blob = new Blob([text], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'transcription.txt';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            recordingStatus.textContent = 'تم تنزيل النص بنجاح!';
-            setTimeout(() => {
-                recordingStatus.textContent = '';
-            }, 3000);
-        });
-        
-        // إضافة زر جديد لمسح النص
-        const clearButton = document.createElement('button');
-        clearButton.textContent = 'مسح النص';
-        clearButton.className = 'btn btn-outline';
-        clearButton.addEventListener('click', () => {
-            transcriptionResult.value = '';
-            finalTranscription = '';
-            recordingStatus.textContent = 'تم مسح النص';
-            setTimeout(() => {
-                recordingStatus.textContent = '';
-            }, 3000);
-        });
-        document.querySelector('#speech-to-text .btn-group').appendChild(clearButton);
-    }
-    
-    // =========== تحويل النص إلى صوت (النص إلى كلام) ===========
-    
-    // التحقق من دعم المتصفح لتحويل النص إلى كلام
-    if ('speechSynthesis' in window) {
-        const synth = window.speechSynthesis;
-        const ttsVoiceSelect = document.getElementById('tts-voice');
-        const textInput = document.getElementById('text-input');
-        const rateInput = document.getElementById('speech-rate');
-        const pitchInput = document.getElementById('speech-pitch');
-        const playSpeechBtn = document.getElementById('play-speech-btn');
-        const stopSpeechBtn = document.getElementById('stop-speech-btn');
-        
-        // ملء قائمة الأصوات المتاحة مع تفضيل الأصوات العربية
-        function populateVoiceList() {
-            const voices = synth.getVoices();
-            ttsVoiceSelect.innerHTML = '';
-            
-            // تصفية الأصوات لتقديم الأصوات العربية أولاً
-            const arabicVoices = voices.filter(voice => voice.lang.includes('ar'));
-            const otherVoices = voices.filter(voice => !voice.lang.includes('ar'));
-            
-            // إضافة الأصوات العربية أولاً
-            arabicVoices.forEach(voice => {
-                const option = document.createElement('option');
-                option.textContent = voice.name + ' (' + voice.lang + ')';
-                option.setAttribute('data-voice-name', voice.name);
-                option.setAttribute('data-lang', voice.lang);
-                ttsVoiceSelect.appendChild(option);
-            });
-            
-            // إضافة فاصل (اختياري)
-            if (arabicVoices.length > 0 && otherVoices.length > 0) {
-                const optgroup = document.createElement('optgroup');
-                optgroup.label = '------- أصوات بلغات أخرى -------';
-                ttsVoiceSelect.appendChild(optgroup);
-            }
-            
-            // إضافة باقي الأصوات
-            otherVoices.forEach(voice => {
-                const option = document.createElement('option');
-                option.textContent = voice.name + ' (' + voice.lang + ')';
-                option.setAttribute('data-voice-name', voice.name);
-                option.setAttribute('data-lang', voice.lang);
-                ttsVoiceSelect.appendChild(option);
-            });
-            
-            // اختيار صوت عربي افتراضي إذا كان متاحاً
-            if (arabicVoices.length > 0) {
-                ttsVoiceSelect.selectedIndex = 0;
-            }
-        }
-        
-        populateVoiceList();
-        
-        // بعض المتصفحات تحتاج إلى هذا الحدث للحصول على قائمة الأصوات
-        if (synth.onvoiceschanged !== undefined) {
-            synth.onvoiceschanged = populateVoiceList;
-        }
-        
-        // زر تشغيل الصوت
-        playSpeechBtn.addEventListener('click', () => {
-            if (synth.speaking) {
-                synth.cancel();
-            }
-            
-            const text = textInput.value;
-            if (text.trim() === '') {
-                alert('يرجى إدخال نص للتحويل إلى صوت');
-                return;
-            }
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            const selectedOption = ttsVoiceSelect.selectedOptions[0];
-            const voices = synth.getVoices();
-            
-            // تحديد الصوت المختار
-            for (let i = 0; i < voices.length; i++) {
-                if (voices[i].name === selectedOption.getAttribute('data-voice-name')) {
-                    utterance.voice = voices[i];
-                    break;
-                }
-            }
-            
-            // إعدادات الصوت
-            utterance.rate = parseFloat(rateInput.value);
-            utterance.pitch = parseFloat(pitchInput.value);
-            
-            // تعيين اللغة بشكل صريح (مفيد للنصوص العربية)
-            const selectedLang = selectedOption.getAttribute('data-lang');
-            utterance.lang = selectedLang;
-            
-            // إضافة مؤشرات لحالة التشغيل
-            utterance.onstart = () => {
-                playSpeechBtn.disabled = true;
-                playSpeechBtn.textContent = 'جاري التشغيل...';
-            };
-            
-            utterance.onend = () => {
-                playSpeechBtn.disabled = false;
-                playSpeechBtn.textContent = 'تشغيل الصوت';
-            };
-            
-            utterance.onerror = (event) => {
-                console.error('خطأ في تشغيل الصوت:', event);
-                playSpeechBtn.disabled = false;
-                playSpeechBtn.textContent = 'تشغيل الصوت';
-                alert('حدث خطأ أثناء تشغيل الصوت');
-            };
-            
-            // تشغيل الصوت
-            synth.speak(utterance);
-        });
-        
-        // زر إيقاف الصوت
-        stopSpeechBtn.addEventListener('click', () => {
-            if (synth.speaking) {
-                synth.cancel();
-                playSpeechBtn.disabled = false;
-                playSpeechBtn.textContent = 'تشغيل الصوت';
-            }
-        });
-        
-        // إضافة زر جديد لنسخ النص
-        const copyTextButton = document.createElement('button');
-        copyTextButton.textContent = 'نسخ النص';
-        copyTextButton.className = 'btn btn-outline';
-        copyTextButton.style.marginLeft = '10px';
-        copyTextButton.addEventListener('click', () => {
-            const text = textInput.value;
-            if (text.trim() === '') {
-                alert('لا يوجد نص للنسخ');
-                return;
-            }
-            
-            navigator.clipboard.writeText(text).then(() => {
-                alert('تم نسخ النص بنجاح!');
-            }).catch(err => {
-                console.error('خطأ في نسخ النص:', err);
-                alert('حدث خطأ أثناء نسخ النص');
-            });
-        });
-        
-        document.querySelector('#text-to-speech .btn-group').appendChild(copyTextButton);
-    } else {
-        document.getElementById('tts-browser-support').style.display = 'block';
-        document.getElementById('play-speech-btn').disabled = true;
-        document.getElementById('stop-speech-btn').disabled = true;
-    }
-});
-        // =========== تخصيص وتحسين التطبيق ===========
-    
-    // إضافة إمكانية حفظ الإعدادات في Local Storage
-    function saveSettings() {
-        // حفظ إعدادات النص إلى صوت
-        const ttsSettings = {
-            voiceName: ttsVoiceSelect.selectedOptions[0].getAttribute('data-voice-name'),
-            rate: rateInput.value,
-            pitch: pitchInput.value
-        };
-        localStorage.setItem('ttsSettings', JSON.stringify(ttsSettings));
-        
-        // حفظ إعدادات الصوت إلى نص
-        const sttSettings = {
-            language: speechLanguage.value
-        };
-        localStorage.setItem('sttSettings', JSON.stringify(sttSettings));
-        
-        document.getElementById('settings-status').textContent = 'تم حفظ الإعدادات بنجاح';
-        setTimeout(() => {
-            document.getElementById('settings-status').textContent = '';
-        }, 3000);
-    }
-    
-    // استرجاع الإعدادات المحفوظة
-    function loadSettings() {
-        // استرجاع إعدادات النص إلى صوت
-        const savedTtsSettings = localStorage.getItem('ttsSettings');
-        if (savedTtsSettings) {
-            const ttsSettings = JSON.parse(savedTtsSettings);
-            
-            // تعيين الصوت المحفوظ
-            if (ttsSettings.voiceName) {
-                for (let i = 0; i < ttsVoiceSelect.options.length; i++) {
-                    if (ttsVoiceSelect.options[i].getAttribute('data-voice-name') === ttsSettings.voiceName) {
-                        ttsVoiceSelect.selectedIndex = i;
-                        break;
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                
+                const recordButton = document.getElementById('record-button');
+                const recordingStatus = document.getElementById('recording-status');
+                const transcriptionResult = document.getElementById('transcription-result');
+                const speechLanguage = document.getElementById('speech-language');
+                
+                let isRecording = false;
+                
+                // تحديث لغة التعرف عند تغييرها
+                speechLanguage.addEventListener('change', () => {
+                    recognition.lang = speechLanguage.value;
+                });
+                
+                // زر التسجيل
+                recordButton.addEventListener('click', () => {
+                    if (!isRecording) {
+                        // بدء التسجيل
+                        startRecording();
+                    } else {
+                        // إيقاف التسجيل
+                        stopRecording();
+                    }
+                });
+                
+                function startRecording() {
+                    try {
+                        recognition.lang = speechLanguage.value;
+                        recognition.start();
+                        isRecording = true;
+                        recordButton.classList.add('recording');
+                        recordingStatus.textContent = 'جاري التسجيل...';
+                    } catch (err) {
+                        console.error('خطأ في بدء التسجيل:', err);
+                        recordingStatus.textContent = 'حدث خطأ في بدء التسجيل';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
                     }
                 }
-            }
-            
-            // تعيين السرعة والطبقة المحفوظة
-            if (ttsSettings.rate) rateInput.value = ttsSettings.rate;
-            if (ttsSettings.pitch) pitchInput.value = ttsSettings.pitch;
-        }
-        
-        // استرجاع إعدادات الصوت إلى نص
-        const savedSttSettings = localStorage.getItem('sttSettings');
-        if (savedSttSettings && speechLanguage) {
-            const sttSettings = JSON.parse(savedSttSettings);
-            if (sttSettings.language) speechLanguage.value = sttSettings.language;
-        }
-    }
-    
-    // إضافة زر حفظ الإعدادات
-    const saveSettingsButton = document.createElement('button');
-    saveSettingsButton.textContent = 'حفظ الإعدادات';
-    saveSettingsButton.className = 'btn btn-primary';
-    saveSettingsButton.addEventListener('click', saveSettings);
-    
-    // إنشاء عنصر لعرض حالة الإعدادات
-    const settingsStatus = document.createElement('span');
-    settingsStatus.id = 'settings-status';
-    settingsStatus.className = 'status-text';
-    settingsStatus.style.marginLeft = '10px';
-    
-    // إضافة الأزرار إلى واجهة المستخدم
-    const settingsContainer = document.createElement('div');
-    settingsContainer.className = 'settings-container';
-    settingsContainer.style.margin = '20px 0';
-    settingsContainer.appendChild(saveSettingsButton);
-    settingsContainer.appendChild(settingsStatus);
-    
-    // إضافة القسم إلى كل من الصوت إلى نص والنص إلى صوت
-    document.getElementById('speech-to-text').appendChild(settingsContainer.cloneNode(true));
-    document.getElementById('text-to-speech').appendChild(settingsContainer);
-    
-    // تحميل الإعدادات عند تحميل الصفحة
-    loadSettings();
-    
-    // =========== تحسين تجربة المستخدم ===========
-    
-    // إظهار معاينة الإعدادات أثناء التغيير
-    if ('speechSynthesis' in window) {
-        // عرض قيمة السرعة والطبقة أثناء التغيير
-        const rateValueDisplay = document.createElement('span');
-        rateValueDisplay.textContent = rateInput.value;
-        rateValueDisplay.className = 'value-display';
-        rateInput.parentNode.appendChild(rateValueDisplay);
-        
-        const pitchValueDisplay = document.createElement('span');
-        pitchValueDisplay.textContent = pitchInput.value;
-        pitchValueDisplay.className = 'value-display';
-        pitchInput.parentNode.appendChild(pitchValueDisplay);
-        
-        rateInput.addEventListener('input', () => {
-            rateValueDisplay.textContent = rateInput.value;
-        });
-        
-        pitchInput.addEventListener('input', () => {
-            pitchValueDisplay.textContent = pitchInput.value;
-        });
-        
-        // إضافة معاينة صوتية للإعدادات
-        const previewButton = document.createElement('button');
-        previewButton.textContent = 'معاينة الصوت';
-        previewButton.className = 'btn btn-outline';
-        previewButton.addEventListener('click', () => {
-            const previewText = 'هذا اختبار للصوت المحدد';
-            const utterance = new SpeechSynthesisUtterance(previewText);
-            
-            const selectedOption = ttsVoiceSelect.selectedOptions[0];
-            const voices = synth.getVoices();
-            
-            for (let i = 0; i < voices.length; i++) {
-                if (voices[i].name === selectedOption.getAttribute('data-voice-name')) {
-                    utterance.voice = voices[i];
-                    break;
+                
+                function stopRecording() {
+                    try {
+                        recognition.stop();
+                        isRecording = false;
+                        recordButton.classList.remove('recording');
+                        recordingStatus.textContent = 'تم إيقاف التسجيل';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                    } catch (err) {
+                        console.error('خطأ في إيقاف التسجيل:', err);
+                    }
                 }
-            }
-            
-            utterance.rate = parseFloat(rateInput.value);
-            utterance.pitch = parseFloat(pitchInput.value);
-            utterance.lang = selectedOption.getAttribute('data-lang');
-            
-            synth.cancel(); // إيقاف أي صوت قيد التشغيل
-            synth.speak(utterance);
-        });
-        
-        document.querySelector('#text-to-speech .control-group').appendChild(previewButton);
-    }
-    
-    // =========== تحسين تحويل الصوت إلى نص ===========
-    
-    if (SpeechRecognition) {
-        // إضافة خيار حفظ التاريخ
-        const historyContainer = document.createElement('div');
-        historyContainer.className = 'history-container';
-        historyContainer.innerHTML = `
-            <h3>سجل النصوص المحولة</h3>
-            <div class="history-list" id="transcription-history"></div>
-        `;
-        
-        document.getElementById('speech-to-text').appendChild(historyContainer);
-        
-        // وظيفة لإضافة نص للتاريخ
-        function addToHistory(text) {
-            if (!text.trim()) return;
-            
-            const historyItem = document.createElement('div');
-            historyItem.className = 'history-item';
-            
-            const timestamp = new Date().toLocaleTimeString();
-            const date = new Date().toLocaleDateString('ar-SA');
-            
-            historyItem.innerHTML = `
-                <div class="history-text">${text}</div>
-                <div class="history-meta">${date} ${timestamp}</div>
-                <div class="history-actions">
-                    <button class="btn-small use-text">استخدام</button>
-                    <button class="btn-small delete-text">حذف</button>
-                </div>
-            `;
-            
-            const historyList = document.getElementById('transcription-history');
-            historyList.insertBefore(historyItem, historyList.firstChild);
-            
-            // زر استخدام النص
-            historyItem.querySelector('.use-text').addEventListener('click', () => {
-                transcriptionResult.value = text;
-                finalTranscription = text;
-            });
-            
-            // زر حذف النص
-            historyItem.querySelector('.delete-text').addEventListener('click', () => {
-                historyList.removeChild(historyItem);
-                saveTranscriptionHistory();
-            });
-            
-            // حفظ التاريخ
-            saveTranscriptionHistory();
-        }
-        
-        // حفظ تاريخ النصوص
-        function saveTranscriptionHistory() {
-            const historyItems = document.querySelectorAll('.history-item .history-text');
-            const history = Array.from(historyItems).map(item => item.textContent);
-            localStorage.setItem('transcriptionHistory', JSON.stringify(history.slice(0, 10))); // احتفظ بآخر 10 نصوص فقط
-        }
-        
-        // استرجاع تاريخ النصوص
-        function loadTranscriptionHistory() {
-            const savedHistory = localStorage.getItem('transcriptionHistory');
-            if (savedHistory) {
-                const history = JSON.parse(savedHistory);
-                history.forEach(text => {
-                    addToHistory(text);
+                
+                // معالجة نتائج التعرف على الكلام
+                recognition.onresult = (event) => {
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    if (finalTranscript) {
+                        // إضافة النص النهائي إلى النتيجة السابقة
+                        transcriptionResult.value += finalTranscript;
+                    }
+                    
+                    // عرض النص المؤقت بلون مختلف (يمكن تحسينه لاحقًا)
+                    if (interimTranscript) {
+                        transcriptionResult.value = transcriptionResult.value.replace(/\(.*?\)$/, '') + ' (' + interimTranscript + ')';
+                    }
+                };
+                
+                recognition.onend = () => {
+                    // إذا كان لا يزال في وضع التسجيل، إعادة تشغيل التعرف
+                    if (isRecording) {
+                        recognition.start();
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('خطأ في التعرف على الكلام:', event.error);
+                    recordingStatus.textContent = 'حدث خطأ: ' + event.error;
+                    isRecording = false;
+                    recordButton.classList.remove('recording');
+                    
+                    setTimeout(() => {
+                        recordingStatus.textContent = '';
+                    }, 3000);
+                };
+                
+                // زر النسخ
+                document.getElementById('copy-text-btn').addEventListener('click', () => {
+                    const textToCopy = transcriptionResult.value;
+                    if (textToCopy.trim() === '') {
+                        recordingStatus.textContent = 'لا يوجد نص للنسخ';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                        return;
+                    }
+                    
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        recordingStatus.textContent = 'تم نسخ النص بنجاح!';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                    }).catch(err => {
+                        console.error('خطأ في نسخ النص:', err);
+                        recordingStatus.textContent = 'حدث خطأ أثناء نسخ النص';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                    });
+                });
+                
+                // زر التنزيل
+                document.getElementById('download-text-btn').addEventListener('click', () => {
+                    const text = transcriptionResult.value;
+                    if (text.trim() === '') {
+                        recordingStatus.textContent = 'لا يوجد نص للتنزيل';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                        return;
+                    }
+                    
+                    const blob = new Blob([text], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'transcription.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    recordingStatus.textContent = 'تم تنزيل النص بنجاح!';
+                    setTimeout(() => {
+                        recordingStatus.textContent = '';
+                    }, 3000);
                 });
             }
-        }
-        
-        // استدعاء التاريخ عند تحميل الصفحة
-        loadTranscriptionHistory();
-        
-        // تعديل زر التنزيل لإضافة النص للتاريخ
-        document.getElementById('download-text-btn').addEventListener('click', () => {
-            const text = transcriptionResult.value;
-            if (text.trim() !== '') {
-                addToHistory(text);
-            }
-        });
-    }
-
-    // =========== دعم إكتشاف التباديل ===========
-    if (SpeechRecognition) {
-        // إضافة دعم للتبديل التلقائي بين اللغات
-        const autoDetectLanguageCheckbox = document.createElement('input');
-        autoDetectLanguageCheckbox.type = 'checkbox';
-        autoDetectLanguageCheckbox.id = 'auto-detect-language';
-        
-        const autoDetectLabel = document.createElement('label');
-        autoDetectLabel.htmlFor = 'auto-detect-language';
-        autoDetectLabel.textContent = 'اكتشاف اللغة تلقائياً';
-        
-        const autoDetectContainer = document.createElement('div');
-        autoDetectContainer.className = 'auto-detect-container';
-        autoDetectContainer.appendChild(autoDetectLanguageCheckbox);
-        autoDetectContainer.appendChild(autoDetectLabel);
-        
-        document.getElementById('speech-to-text').querySelector('.control-group').appendChild(autoDetectContainer);
-        
-        // استماع لحدث تغيير الاكتشاف التلقائي
-        autoDetectLanguageCheckbox.addEventListener('change', () => {
-            if (autoDetectLanguageCheckbox.checked) {
-                speechLanguage.disabled = true;
-                recognition.lang = ''; // إفراغ اللغة للسماح بالاكتشاف التلقائي
+            
+            // =========== تحويل النص إلى صوت (النص إلى كلام) ===========
+            
+            // التحقق من دعم المتصفح لتحويل النص إلى كلام
+            if ('speechSynthesis' in window) {
+                const synth = window.speechSynthesis;
+                const ttsVoiceSelect = document.getElementById('tts-voice');
+                const textInput = document.getElementById('text-input');
+                const rateInput = document.getElementById('speech-rate');
+                const pitchInput = document.getElementById('speech-pitch');
+                const playSpeechBtn = document.getElementById('play-speech-btn');
+                const stopSpeechBtn = document.getElementById('stop-speech-btn');
+                
+                // ملء قائمة الأصوات المتاحة
+                function populateVoiceList() {
+                    const voices = synth.getVoices();
+                    ttsVoiceSelect.innerHTML = '';
+                    
+                    voices.forEach(voice => {
+                        const option = document.createElement('option');
+                        option.textContent = voice.name + ' (' + voice.lang + ')';
+                        option.setAttribute('data-voice-name', voice.name);
+                        option.setAttribute('data-lang', voice.lang);
+                        ttsVoiceSelect.appendChild(option);
+                    });
+                }
+                
+                populateVoiceList();
+                
+                // بعض المتصفحات تحتاج إلى هذا الحدث للحصول على قائمة الأصوات
+                if (synth.onvoiceschanged !== undefined) {
+                    synth.onvoiceschanged = populateVoiceList;
+                }
+                
+                // زر تشغيل الصوت
+                playSpeechBtn.addEventListener('click', () => {
+                    if (synth.speaking) {
+                        synth.cancel();
+                    }
+                    
+                    const text = textInput.value;
+                    if (text.trim() === '') {
+                        alert('يرجى إدخال نص للتحويل إلى صوت');
+                        return;
+                    }
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    const selectedOption = ttsVoiceSelect.selectedOptions[0];
+                    const voices = synth.getVoices();
+                    
+                    for (let i = 0; i < voices.length; i++) {
+                        if (voices[i].name === selectedOption.getAttribute('data-voice-name')) {
+                            utterance.voice = voices[i];
+                            break;
+                        }
+                    }
+                    
+                    utterance.rate = parseFloat(rateInput.value);
+                    utterance.pitch = parseFloat(pitchInput.value);
+                    
+                    synth.speak(utterance);
+                });
+                
+                // زر إيقاف الصوت
+                stopSpeechBtn.addEventListener('click', () => {
+                    if (synth.speaking) {
+                        synth.cancel();
+                    }
+                });
+                
             } else {
-                speechLanguage.disabled = false;
-                recognition.lang = speechLanguage.value;
+                document.getElementById('tts-browser-support').style.display = 'block';
+                document.getElementById('play-speech-btn').disabled = true;
+                document.getElementById('stop-speech-btn').disabled = true;
             }
         });
-    }
-
-    // =========== استيراد وتصدير البيانات ===========
-    
-    // إضافة وظائف لتصدير واستيراد الإعدادات والسجلات
-    const exportDataButton = document.createElement('button');
-    exportDataButton.textContent = 'تصدير البيانات';
-    exportDataButton.className = 'btn btn-outline';
-    exportDataButton.addEventListener('click', () => {
-        const exportData = {
-            ttsSettings: localStorage.getItem('ttsSettings') ? JSON.parse(localStorage.getItem('ttsSettings')) : {},
-            sttSettings: localStorage.getItem('sttSettings') ? JSON.parse(localStorage.getItem('sttSettings')) : {},
-            transcriptionHistory: localStorage.getItem('transcriptionHistory') ? JSON.parse(localStorage.getItem('transcriptionHistory')) : []
-        };
-        
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'voice-app-data.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    });
-    
-    const importDataButton = document.createElement('button');
-    importDataButton.textContent = 'استيراد البيانات';
-    importDataButton.className = 'btn btn-outline';
-    
-    const importInput = document.createElement('input');
-    importInput.type = 'file';
-    importInput.accept = '.json';
-    importInput.style.display = 'none';
-    
-    importDataButton.addEventListener('click', () => {
-        importInput.click();
-    });
-    
-    importInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const importedData = JSON.parse(e.target.result);
-                
-                if (importedData.ttsSettings) {
-                    localStorage.setItem('ttsSettings', JSON.stringify(importedData.ttsSettings));
-                }
-                
-                if (importedData.sttSettings) {
-                    localStorage.setItem('sttSettings', JSON.stringify(importedData.sttSettings));
-                }
-                
-                if (importedData.transcriptionHistory) {
-                    localStorage.setItem('transcriptionHistory', JSON.stringify(importedData.transcriptionHistory));
-                }
-                
-                // إعادة تحميل الصفحة لتطبيق الإعدادات
-                alert('تم استيراد البيانات بنجاح. سيتم إعادة تحميل الصفحة.');
-                window.location.reload();
-            } catch (err) {
-                console.error('خطأ في استيراد البيانات:', err);
-                alert('حدث خطأ أثناء استيراد البيانات. تأكد من صحة الملف.');
-            }
-        };
-        reader.readAsText(file);
-    });
-    
-    // إضافة أزرار الاستيراد والتصدير
-    const dataManagementContainer = document.createElement('div');
-    dataManagementContainer.className = 'data-management';
-    dataManagementContainer.innerHTML = '<h3>إدارة البيانات</h3>';
-    dataManagementContainer.appendChild(exportDataButton);
-    dataManagementContainer.appendChild(importDataButton);
-    dataManagementContainer.appendChild(importInput);
-    
-    // إضافة القسم للتطبيق في نهاية الصفحة
-    document.body.appendChild(dataManagementContainer);
-});
     </script>
 </body>
 </html>
