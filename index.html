@@ -594,133 +594,106 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // تبديل بين علامات التبويب
-            const tabs = document.querySelectorAll('.tab');
-            const tabContents = document.querySelectorAll('.tab-content');
-            
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const target = tab.dataset.tab;
-                    
-                    // إزالة الفئة النشطة من جميع علامات التبويب والمحتويات
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    
-                    // إضافة الفئة النشطة إلى علامة التبويب المحددة ومحتواها
-                    tab.classList.add('active');
-                    document.getElementById(target).classList.add('active');
-                });
-            });
-            
-            // =========== التعرف على الكلام (الصوت إلى نص) ===========
-            
-            // التحقق من دعم المتصفح للتعرف على الكلام
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            let recognition;
-            
-            if (!SpeechRecognition) {
-                document.getElementById('stt-browser-support').style.display = 'block';
-                document.getElementById('record-button').style.display = 'none';
+    // التحقق من دعم المتصفح للتعرف على الكلام
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        
+        const recordButton = document.getElementById('record-button');
+        const recordingStatus = document.getElementById('recording-status');
+        const transcriptionResult = document.getElementById('transcription-result');
+        const speechLanguage = document.getElementById('speech-language');
+        
+        let isRecording = false;
+        let finalTranscript = ''; // نحتفظ بالنص النهائي هنا
+        
+        // تحديث لغة التعرف عند تغييرها
+        speechLanguage.addEventListener('change', () => {
+            recognition.lang = speechLanguage.value;
+        });
+        
+        // زر التسجيل
+        recordButton.addEventListener('click', () => {
+            if (!isRecording) {
+                // بدء التسجيل
+                startRecording();
             } else {
-                recognition = new SpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = true;
-                
-                const recordButton = document.getElementById('record-button');
-                const recordingStatus = document.getElementById('recording-status');
-                const transcriptionResult = document.getElementById('transcription-result');
-                const speechLanguage = document.getElementById('speech-language');
-                
-                let isRecording = false;
-                
-                // تحديث لغة التعرف عند تغييرها
-                speechLanguage.addEventListener('change', () => {
-                    recognition.lang = speechLanguage.value;
-                });
-                
-                // زر التسجيل
-                recordButton.addEventListener('click', () => {
-                    if (!isRecording) {
-                        // بدء التسجيل
-                        startRecording();
-                    } else {
-                        // إيقاف التسجيل
-                        stopRecording();
-                    }
-                });
-                
-                function startRecording() {
-                    try {
-                        recognition.lang = speechLanguage.value;
-                        recognition.start();
-                        isRecording = true;
-                        recordButton.classList.add('recording');
-                        recordingStatus.textContent = 'جاري التسجيل...';
-                    } catch (err) {
-                        console.error('خطأ في بدء التسجيل:', err);
-                        recordingStatus.textContent = 'حدث خطأ في بدء التسجيل';
-                        setTimeout(() => {
-                            recordingStatus.textContent = '';
-                        }, 3000);
-                    }
+                // إيقاف التسجيل
+                stopRecording();
+            }
+        });
+        
+        function startRecording() {
+            try {
+                recognition.lang = speechLanguage.value;
+                finalTranscript = transcriptionResult.value; // احتفظ بالنص الموجود حاليًا
+                recognition.start();
+                isRecording = true;
+                recordButton.classList.add('recording');
+                recordingStatus.textContent = 'جاري التسجيل...';
+            } catch (err) {
+                console.error('خطأ في بدء التسجيل:', err);
+                recordingStatus.textContent = 'حدث خطأ في بدء التسجيل';
+                setTimeout(() => {
+                    recordingStatus.textContent = '';
+                }, 3000);
+            }
+        }
+        
+        function stopRecording() {
+            try {
+                recognition.stop();
+                isRecording = false;
+                recordButton.classList.remove('recording');
+                recordingStatus.textContent = 'تم إيقاف التسجيل';
+                setTimeout(() => {
+                    recordingStatus.textContent = '';
+                }, 3000);
+            } catch (err) {
+                console.error('خطأ في إيقاف التسجيل:', err);
+            }
+        }
+        
+        // معالجة نتائج التعرف على الكلام
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += ' ' + transcript;
+                } else {
+                    interimTranscript += transcript;
                 }
-                
-                function stopRecording() {
-                    try {
-                        recognition.stop();
-                        isRecording = false;
-                        recordButton.classList.remove('recording');
-                        recordingStatus.textContent = 'تم إيقاف التسجيل';
-                        setTimeout(() => {
-                            recordingStatus.textContent = '';
-                        }, 3000);
-                    } catch (err) {
-                        console.error('خطأ في إيقاف التسجيل:', err);
-                    }
-                }
-                
-                // معالجة نتائج التعرف على الكلام
-                recognition.onresult = (event) => {
-                    let finalTranscript = '';
-                    let interimTranscript = '';
-                    
-                    for (let i = event.resultIndex; i < event.results.length; i++) {
-                        const transcript = event.results[i][0].transcript;
-                        if (event.results[i].isFinal) {
-                            finalTranscript += transcript + ' ';
-                        } else {
-                            interimTranscript += transcript;
-                        }
-                    }
-                    
-                    if (finalTranscript) {
-                        // إضافة النص النهائي إلى النتيجة السابقة
-                        transcriptionResult.value += finalTranscript;
-                    }
-                    
-                    // عرض النص المؤقت بلون مختلف (يمكن تحسينه لاحقًا)
-                    if (interimTranscript) {
-                        transcriptionResult.value = transcriptionResult.value.replace(/\(.*?\)$/, '') + ' (' + interimTranscript + ')';
-                    }
-                };
-                
-                recognition.onend = () => {
-                    // إذا كان لا يزال في وضع التسجيل، إعادة تشغيل التعرف
-                    if (isRecording) {
-                        recognition.start();
-                    }
-                };
-                
-                recognition.onerror = (event) => {
-                    console.error('خطأ في التعرف على الكلام:', event.error);
-                    recordingStatus.textContent = 'حدث خطأ: ' + event.error;
-                    isRecording = false;
-                    recordButton.classList.remove('recording');
-                    
-                    setTimeout(() => {
-                        recordingStatus.textContent = '';
-                    }, 3000);
-                };
+            }
+            
+            // تحديث محتوى textarea بالنص النهائي والمؤقت
+            transcriptionResult.value = finalTranscript.trim() + (interimTranscript ? ' (' + interimTranscript + ')' : '');
+        };
+        
+        recognition.onend = () => {
+            // إذا كان لا يزال في وضع التسجيل، إعادة تشغيل التعرف
+            if (isRecording) {
+                recognition.start();
+            }
+        };
+        
+        recognition.onerror = (event) => {
+            console.error('خطأ في التعرف على الكلام:', event.error);
+            recordingStatus.textContent = 'حدث خطأ: ' + event.error;
+            isRecording = false;
+            recordButton.classList.remove('recording');
+            
+            setTimeout(() => {
+                recordingStatus.textContent = '';
+            }, 3000);
+        };
+    }
+});
                 
                 // زر النسخ
                 document.getElementById('copy-text-btn').addEventListener('click', () => {
