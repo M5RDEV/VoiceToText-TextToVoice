@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="img/Logo.png">
+    <title>محول الصوت والنص | خدمة مميزة لتحويل الصوت إلى نص والنص إلى صوت</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px 0;
+            box-shadow: var(--box-shadow);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-icon {
+            margin-left: 10px;
+            font-size: 28px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-right: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--success-color);
+        }
+
+        .hero {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            color: #666;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background-color: #e9ecef;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .tab:first-child {
+            border-radius: var(--border-radius) 0 0 var(--border-radius);
+        }
+
+        .tab:last-child {
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background-color: #dee2e6;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .converter-box {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .converter-box h2 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            resize: vertical;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .language-select {
+            padding: 10px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ced4da;
+            font-size: 16px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .record-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 24px;
+            margin: 0 auto 20px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .record-button:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .record-button.recording {
+            background-color: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .status-indicator {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+            height: 24px;
+        }
+
+        .features {
+            padding: 80px 0;
+            background-color: var(--light-color);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            color: var(--primary-color);
+        }
+
+        .features-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .social-link:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-5px);
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+            }
+            .nav-links {
+                margin-top: 20px;
+            }
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .features-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-headphones-alt logo-icon"></i>
+                    محول الصوت والنص
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#speech-to-text">الصوت إلى نص</a></li>
+                    <li><a href="#text-to-speech">النص إلى صوت</a></li>
+                    <li><a href="#features">المميزات</a></li>
+                    <li><a href="#contact">اتصل بنا</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>محول الصوت والنص المتقدم</h1>
+            <p>استخدم تقنية الذكاء الاصطناعي المتطورة لتحويل الصوت إلى نص والنص إلى صوت بدقة عالية ومرونة تامة. تدعم العديد من اللغات وسهلة الاستخدام!</p>
+            
+            <div class="tabs">
+                <button class="tab active" data-tab="speech-to-text">الصوت إلى نص</button>
+                <button class="tab" data-tab="text-to-speech">النص إلى صوت</button>
+            </div>
+            
+            <div id="speech-to-text" class="tab-content active">
+                <div class="converter-box">
+                    <h2>تحويل الصوت إلى نص</h2>
+                    
+                    <div id="stt-browser-support" class="alert alert-warning" style="display:none;">
+                        تنبيه: متصفحك لا يدعم ميزة التعرف على الكلام. يرجى استخدام متصفح حديث مثل Chrome أو Edge أو Safari.
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="speech-language">اختر اللغة:</label>
+                        <select id="speech-language" class="language-select">
+                            <option value="ar-SA">العربية</option>
+                            <option value="en-US">الإنجليزية (الولايات المتحدة)</option>
+                            <option value="en-GB">الإنجليزية (بريطانيا)</option>
+                            <option value="fr-FR">الفرنسية</option>
+                            <option value="es-ES">الإسبانية</option>
+                            <option value="de-DE">الألمانية</option>
+                            <option value="ja-JP">اليابانية</option>
+                            <option value="zh-CN">الصينية</option>
+                        </select>
+                    </div>
+                    
+                    <div class="record-button" id="record-button">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                    
+                    <div class="status-indicator" id="recording-status"></div>
+                    
+                    <div class="control-group">
+                        <label for="transcription-result">النص المحول:</label>
+                        <textarea id="transcription-result" placeholder="سيظهر هنا النص المحول من الصوت..."></textarea>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="copy-text-btn">نسخ النص</button>
+                        <button class="btn btn-outline" id="download-text-btn">تنزيل كملف نصي</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="text-to-speech" class="tab-content">
+                <div class="converter-box">
+                    <h2>تحويل النص إلى صوت</h2>
+                    
+                    <div id="tts-browser-support" class="alert alert-warning" style="display:none;">
+                        تنبيه: متصفحك لا يدعم ميزة تحويل النص إلى كلام. يرجى استخدام متصفح حديث مثل Chrome أو Edge أو Safari.
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="text-input">أدخل النص:</label>
+                        <textarea id="text-input" placeholder="اكتب أو الصق النص الذي تريد تحويله إلى صوت..."></textarea>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="tts-voice">اختر الصوت:</label>
+                        <select id="tts-voice" class="language-select">
+                            <!-- سيتم ملء هذه القائمة ديناميكيًا بالأصوات المتاحة -->
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="speech-rate">سرعة الكلام:</label>
+                        <input type="range" id="speech-rate" min="0.5" max="2" step="0.1" value="1">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>بطيء</span>
+                            <span>عادي</span>
+                            <span>سريع</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="speech-pitch">نبرة الصوت:</label>
+                        <input type="range" id="speech-pitch" min="0.1" max="2" step="0.1" value="1">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>منخفض</span>
+                            <span>عادي</span>
+                            <span>مرتفع</span>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="play-speech-btn">تشغيل الصوت</button>
+                        <button class="btn btn-outline" id="stop-speech-btn">إيقاف الصوت</button>
+                    </div>
+                    
+                    <div id="audio-output" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title">مميزات الخدمة</h2>
+            
+            <div class="features-container">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3>دعم متعدد اللغات</h3>
+                    <p>نوفر دعمًا للعديد من اللغات العالمية مع التعرف الدقيق على اللهجات المختلفة.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>سرعة وكفاءة عالية</h3>
+                    <p>تحويل فوري وسريع مع خوارزميات متطورة تضمن دقة النتائج في وقت قياسي.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>خصوصية وأمان</h3>
+                    <p>نضمن حماية بياناتك وخصوصيتك. لا نحتفظ بالتسجيلات أو النصوص بعد التحويل.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>تقنيات حديثة</h3>
+                    <p>نستخدم أحدث تقنيات التعرف على الكلام وتوليد الأصوات بشكل طبيعي.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <h3>متوافق مع جميع الأجهزة</h3>
+                    <p>يعمل على جميع أنواع الأجهزة والمتصفحات، سواء كنت تستخدم حاسوب أو هاتف ذكي.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3>إمكانية التحميل</h3>
+                    <p>يمكنك تحميل النتائج بصيغة ملفات نصية أو صوتية بجودة عالية.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>© 2025 محول الصوت والنص - جميع الحقوق محفوظة</p>
+                <p>خدمة مميزة لتحويل الصوت إلى نص والنص إلى صوت باستخدام تقنيات الذكاء الاصطناعي المتطورة</p>
+                
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // تبديل بين علامات التبويب
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+                    
+                    // إزالة الفئة النشطة من جميع علامات التبويب والمحتويات
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // إضافة الفئة النشطة إلى علامة التبويب المحددة ومحتواها
+                    tab.classList.add('active');
+                    document.getElementById(target).classList.add('active');
+                });
+            });
+            
+            // =========== التعرف على الكلام (الصوت إلى نص) ===========
+            
+            // التحقق من دعم المتصفح للتعرف على الكلام
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let recognition;
+            
+            if (!SpeechRecognition) {
+                document.getElementById('stt-browser-support').style.display = 'block';
+                document.getElementById('record-button').style.display = 'none';
+            } else {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                
+                const recordButton = document.getElementById('record-button');
+                const recordingStatus = document.getElementById('recording-status');
+                const transcriptionResult = document.getElementById('transcription-result');
+                const speechLanguage = document.getElementById('speech-language');
+                
+                let isRecording = false;
+                
+                // تحديث لغة التعرف عند تغييرها
+                speechLanguage.addEventListener('change', () => {
+                    recognition.lang = speechLanguage.value;
+                });
+                
+                // زر التسجيل
+                recordButton.addEventListener('click', () => {
+                    if (!isRecording) {
+                        // بدء التسجيل
+                        startRecording();
+                    } else {
+                        // إيقاف التسجيل
+                        stopRecording();
+                    }
+                });
+                
+                function startRecording() {
+                    try {
+                        recognition.lang = speechLanguage.value;
+                        recognition.start();
+                        isRecording = true;
+                        recordButton.classList.add('recording');
+                        recordingStatus.textContent = 'جاري التسجيل...';
+                    } catch (err) {
+                        console.error('خطأ في بدء التسجيل:', err);
+                        recordingStatus.textContent = 'حدث خطأ في بدء التسجيل';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                    }
+                }
+                
+                function stopRecording() {
+                    try {
+                        recognition.stop();
+                        isRecording = false;
+                        recordButton.classList.remove('recording');
+                        recordingStatus.textContent = 'تم إيقاف التسجيل';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                    } catch (err) {
+                        console.error('خطأ في إيقاف التسجيل:', err);
+                    }
+                }
+                
+                // معالجة نتائج التعرف على الكلام
+                recognition.onresult = (event) => {
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    if (finalTranscript) {
+                        // إضافة النص النهائي إلى النتيجة السابقة
+                        transcriptionResult.value += finalTranscript;
+                    }
+                    
+                    // عرض النص المؤقت بلون مختلف (يمكن تحسينه لاحقًا)
+                    if (interimTranscript) {
+                        transcriptionResult.value = transcriptionResult.value.replace(/\(.*?\)$/, '') + ' (' + interimTranscript + ')';
+                    }
+                };
+                
+                recognition.onend = () => {
+                    // إذا كان لا يزال في وضع التسجيل، إعادة تشغيل التعرف
+                    if (isRecording) {
+                        recognition.start();
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('خطأ في التعرف على الكلام:', event.error);
+                    recordingStatus.textContent = 'حدث خطأ: ' + event.error;
+                    isRecording = false;
+                    recordButton.classList.remove('recording');
+                    
+                    setTimeout(() => {
+                        recordingStatus.textContent = '';
+                    }, 3000);
+                };
+                
+                // زر النسخ
+                document.getElementById('copy-text-btn').addEventListener('click', () => {
+                    const textToCopy = transcriptionResult.value;
+                    if (textToCopy.trim() === '') {
+                        recordingStatus.textContent = 'لا يوجد نص للنسخ';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                        return;
+                    }
+                    
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        recordingStatus.textContent = 'تم نسخ النص بنجاح!';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                    }).catch(err => {
+                        console.error('خطأ في نسخ النص:', err);
+                        recordingStatus.textContent = 'حدث خطأ أثناء نسخ النص';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                    });
+                });
+                
+                // زر التنزيل
+                document.getElementById('download-text-btn').addEventListener('click', () => {
+                    const text = transcriptionResult.value;
+                    if (text.trim() === '') {
+                        recordingStatus.textContent = 'لا يوجد نص للتنزيل';
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+                        return;
+                    }
+                    
+                    const blob = new Blob([text], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'transcription.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    recordingStatus.textContent = 'تم تنزيل النص بنجاح!';
+                    setTimeout(() => {
+                        recordingStatus.textContent = '';
+                    }, 3000);
+                });
+            }
+            
+            // =========== تحويل النص إلى صوت (النص إلى كلام) ===========
+            
+            // التحقق من دعم المتصفح لتحويل النص إلى كلام
+            if ('speechSynthesis' in window) {
+                const synth = window.speechSynthesis;
+                const ttsVoiceSelect = document.getElementById('tts-voice');
+                const textInput = document.getElementById('text-input');
+                const rateInput = document.getElementById('speech-rate');
+                const pitchInput = document.getElementById('speech-pitch');
+                const playSpeechBtn = document.getElementById('play-speech-btn');
+                const stopSpeechBtn = document.getElementById('stop-speech-btn');
+                
+                // ملء قائمة الأصوات المتاحة
+                function populateVoiceList() {
+                    const voices = synth.getVoices();
+                    ttsVoiceSelect.innerHTML = '';
+                    
+                    voices.forEach(voice => {
+                        const option = document.createElement('option');
+                        option.textContent = voice.name + ' (' + voice.lang + ')';
+                        option.setAttribute('data-voice-name', voice.name);
+                        option.setAttribute('data-lang', voice.lang);
+                        ttsVoiceSelect.appendChild(option);
+                    });
+                }
+                
+                populateVoiceList();
+                
+                // بعض المتصفحات تحتاج إلى هذا الحدث للحصول على قائمة الأصوات
+                if (synth.onvoiceschanged !== undefined) {
+                    synth.onvoiceschanged = populateVoiceList;
+                }
+                
+                // زر تشغيل الصوت
+                playSpeechBtn.addEventListener('click', () => {
+                    if (synth.speaking) {
+                        synth.cancel();
+                    }
+                    
+                    const text = textInput.value;
+                    if (text.trim() === '') {
+                        alert('يرجى إدخال نص للتحويل إلى صوت');
+                        return;
+                    }
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    const selectedOption = ttsVoiceSelect.selectedOptions[0];
+                    const voices = synth.getVoices();
+                    
+                    for (let i = 0; i < voices.length; i++) {
+                        if (voices[i].name === selectedOption.getAttribute('data-voice-name')) {
+                            utterance.voice = voices[i];
+                            break;
+                        }
+                    }
+                    
+                    utterance.rate = parseFloat(rateInput.value);
+                    utterance.pitch = parseFloat(pitchInput.value);
+                    
+                    synth.speak(utterance);
+                });
+                
+                // زر إيقاف الصوت
+                stopSpeechBtn.addEventListener('click', () => {
+                    if (synth.speaking) {
+                        synth.cancel();
+                    }
+                });
+                
+            } else {
+                document.getElementById('tts-browser-support').style.display = 'block';
+                document.getElementById('play-speech-btn').disabled = true;
+                document.getElementById('stop-speech-btn').disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
